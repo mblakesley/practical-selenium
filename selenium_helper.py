@@ -1,66 +1,91 @@
 import time
 
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+
 
 from lib import common
 from lib.web_element_plus import WebElementPlus
 
 
-def get(ElementClass, locator_subs=None, wait=10):
+def get(selector, wait=10):
     """
-    Fetch first element described by ElementClass's attributes, waiting if it's not visible
+    Fetch first element matching selector, waiting if it's not visible
 
     Args:
-        ElementClass (class): any class with a Selenium locator tuple stored in the .locator attribute
-        locator_subs (str OR list, optional): string or list of strings to substitute into
-            the locator string using .format(). Defaults to None.
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
         wait (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
-        Selenium element object: element object, with a few added convenience methods of our own
+        WebElementPlus object: Selenium element object, with a few added convenience methods of our own
     """
-    locator = _get_locator(ElementClass, locator_subs)
+    locator = _convert_to_locator(selector)
     elem = WebDriverWait(common.driver, wait).until(EC.visibility_of_element_located(locator))
     return WebElementPlus(elem)
 
 
-def get_all(ElementClass, locator_subs=None, wait=10):
+def get_all(selector, wait=10):
     """
-    Fetch all visible elements described by ElementClass's attributes, waiting if none are visible
+    Fetch all visible elements matching selector, waiting only if none are visible
 
     Args:
-        ElementClass (class): any class with a Selenium locator tuple stored in the .locator attribute
-        locator_subs (str OR list, optional): string or list of strings to substitute into
-            the locator string using .format(). Defaults to None.
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
         wait (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
-        List of Selenium element objects: element objects, with a few added convenience methods of our own
+        list of WebElementPlus objects: list of Selenium element objects, with a few added convenience methods
     """
-    locator = _get_locator(ElementClass, locator_subs)
+    locator = _convert_to_locator(selector)
     # TODO: this is supposed to find any, not all - make sure "any" works w/error msg in esswebpagenew
     elem_list = WebDriverWait(common.driver, wait).until(EC.visibility_of_any_elements_located(locator))
     return list(map(WebElementPlus, elem_list))
 
 
-def click(ElementClass, locator_subs=None, wait=10):
+def click(selector, wait=10):
     """
-    Fetch first element described by ElementClass's attributes, waiting if it's not clickable
+    Fetch first element matching selector, waiting if it's not clickable
 
     Args:
-        ElementClass (class): any class with a Selenium locator tuple stored in the .locator attribute
-        locator_subs (str OR list, optional): string or list of strings to substitute into
-            the locator string using .format(). Defaults to None.
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
         wait (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
-        Selenium element object: element object, with a few added convenience methods of our own
+        WebElementPlus object: Selenium element object, with a few added convenience methods of our own
     """
-    locator = _get_locator(ElementClass, locator_subs)
+    locator = _convert_to_locator(selector)
     elem = WebDriverWait(common.driver, wait).until(EC.element_to_be_clickable(locator))
     elem.click()
     return WebElementPlus(elem)
+
+
+def _convert_to_locator(selector):
+    """
+    Convert <selector> to a Selenium locator, if it isn't one already.
+
+    Args:
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+
+    Returns:
+        tuple: Selenium locator tuple
+    """
+    if isinstance(selector, tuple):
+        return selector
+    # here we guess that if the selector starts with a '/', it's xpath, not CSS
+    elif selector.startswith('/'):
+        return (By.XPATH, selector)
+    else:
+        return (By.CSS_SELECTOR, selector)
+
+
+def wait(seconds):
+    """
+    Wait for the specified time.
+
+    Args:
+        seconds (int): number of seconds to wait
+    """
+    time.sleep(seconds)
 
 
 def wait_until_stale(element, wait=10):
@@ -68,36 +93,7 @@ def wait_until_stale(element, wait=10):
     Wait until specified element is stale
 
     Args:
-        element (WebElement/Plus object):
+        element (Selenium element object): target element
         wait (int, optional): max number of seconds to wait. Defaults to 10.
     """
     WebDriverWait(common.driver, wait).until(EC.staleness_of(element))
-
-
-def _get_locator(ElementClass, locator_subs=None):
-    """
-    Fetch an element class's locator and, if provided, substitute into the locator string (2nd item) any <locator_subs>
-
-    Args:
-        ElementClass (class): any class with a Selenium locator tuple stored in the .locator attribute
-        locator_subs (str OR list, optional): string or list of strings to substitute into
-            the locator string using .format(). Defaults to None.
-
-    Returns:
-        tuple: Selenium locator tuple
-    """
-    locator = ElementClass.locator
-    # TODO: locator substitution MVP, but not robust
-    if locator_subs is not None:
-        locator = (locator[0], locator[1].format(locator_subs))
-    return locator
-
-
-def wait(seconds):
-    """
-    Wait for the specified time. Wrapper for time.sleep()
-
-    Args:
-        seconds (int): number of seconds to wait
-    """
-    time.sleep(seconds)

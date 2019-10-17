@@ -21,3 +21,6 @@ class WebElementPlus(WebElement):
         """
         self.clear()
         self.send_keys(*value)
+
+    # TODO: 'should' methods? if we have to write our own asserts over for pytest, might as well?
+    # TODO: value property?
