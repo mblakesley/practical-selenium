@@ -1,4 +1,9 @@
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
+
+import common
+import custom_conditions as CC
 
 
 class WebElementPlus(WebElement):
@@ -22,5 +27,19 @@ class WebElementPlus(WebElement):
         self.clear()
         self.send_keys(*value)
 
-    # TODO: 'should' methods? if we have to write our own asserts over for pytest, might as well?
-    # TODO: value property?
+    def click(self, wait=10):
+        """
+        Wait until the element is clickable, then click it
+
+        Args:
+            wait (int, optional): max number of seconds to wait. Defaults to 10.
+
+        Returns:
+            WebElementPlus object: the element itself. Useful for simultaneously clicking & storing the element
+        """
+        WebDriverWait(common.driver, wait).until(CC.element_to_be_clickable(self))
+        super().click()
+        return self
+
+    # TODO: 'should' methods - if we have to write our own asserts over for pytest, might as well
+    # TODO: value property

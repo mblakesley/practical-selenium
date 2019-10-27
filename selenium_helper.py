@@ -2,11 +2,12 @@ import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 
-from lib import common
-from lib.web_element_plus import WebElementPlus
+import common
+from web_element_plus import WebElementPlus
 
 
 def get(selector, wait=10):
@@ -18,9 +19,9 @@ def get(selector, wait=10):
         wait (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
-        WebElementPlus object: Selenium element object, with a few added convenience methods of our own
+        WebElementPlus object: Selenium element object, with a few added convenience methods
     """
-    locator = _convert_to_locator(selector)
+    locator = locatorize(selector)
     elem = WebDriverWait(common.driver, wait).until(EC.visibility_of_element_located(locator))
     return WebElementPlus(elem)
 
@@ -36,30 +37,12 @@ def get_all(selector, wait=10):
     Returns:
         list of WebElementPlus objects: list of Selenium element objects, with a few added convenience methods
     """
-    locator = _convert_to_locator(selector)
-    # TODO: this is supposed to find any, not all - make sure "any" works w/error msg in esswebpagenew
+    locator = locatorize(selector)
     elem_list = WebDriverWait(common.driver, wait).until(EC.visibility_of_any_elements_located(locator))
     return list(map(WebElementPlus, elem_list))
 
 
-def click(selector, wait=10):
-    """
-    Fetch first element matching selector, waiting if it's not clickable
-
-    Args:
-        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
-        wait (int, optional): max number of seconds to wait. Defaults to 10.
-
-    Returns:
-        WebElementPlus object: Selenium element object, with a few added convenience methods of our own
-    """
-    locator = _convert_to_locator(selector)
-    elem = WebDriverWait(common.driver, wait).until(EC.element_to_be_clickable(locator))
-    elem.click()
-    return WebElementPlus(elem)
-
-
-def _convert_to_locator(selector):
+def locatorize(selector):
     """
     Convert <selector> to a Selenium locator, if it isn't one already.
 
@@ -69,7 +52,7 @@ def _convert_to_locator(selector):
     Returns:
         tuple: Selenium locator tuple
     """
-    if isinstance(selector, tuple):
+    if isinstance(selector, (tuple, list)):
         return selector
     # here we guess that if the selector starts with a '/', it's xpath, not CSS
     elif selector.startswith('/'):
