@@ -26,6 +26,22 @@ def get(selector, wait=10):
     return WebElementPlus(elem)
 
 
+def menu(selector, wait=10):
+    """
+    Fetch first <select> element matching selector, waiting if it's not visible
+
+    Args:
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+        wait (int, optional): max number of seconds to wait. Defaults to 10.
+
+    Returns:
+        Select object: Selenium <select> element object, with a few added convenience methods
+    """
+    locator = locatorize(selector)
+    elem = WebDriverWait(common.driver, wait).until(EC.visibility_of_element_located(locator))
+    return Select(elem)
+
+
 def get_all(selector, wait=10):
     """
     Fetch all visible elements matching selector, waiting only if none are visible

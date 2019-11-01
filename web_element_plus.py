@@ -1,4 +1,3 @@
-from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 
