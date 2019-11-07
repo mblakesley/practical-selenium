@@ -5,56 +5,58 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
-
-import common
 from web_element_plus import WebElementPlus
 
 
-def get(selector, wait=10):
+driver = None
+
+
+def find(selector, timeout=10):
     """
-    Fetch first element matching selector, waiting if it's not visible
+    Fetch first element matching selector. If it's not visible, wait until it is or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
-        wait (int, optional): max number of seconds to wait. Defaults to 10.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
         WebElementPlus object: Selenium element object, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem = WebDriverWait(common.driver, wait).until(EC.visibility_of_element_located(locator))
+    elem = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located(locator))
     return WebElementPlus(elem)
 
 
-def menu(selector, wait=10):
+def menu(selector, timeout=10):
     """
-    Fetch first <select> element matching selector, waiting if it's not visible
+    Fetch first <select> element matching selector. If not visible, wait until it is or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
-        wait (int, optional): max number of seconds to wait. Defaults to 10.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
         Select object: Selenium <select> element object, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem = WebDriverWait(common.driver, wait).until(EC.visibility_of_element_located(locator))
+    elem = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located(locator))
     return Select(elem)
 
 
-def get_all(selector, wait=10):
+def find_all(selector, timeout=10):
     """
-    Fetch all visible elements matching selector, waiting only if none are visible
+    Fetch all visible elements matching selector.
+    If none are visible, wait until at least 1 is or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
-        wait (int, optional): max number of seconds to wait. Defaults to 10.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
 
     Returns:
         list of WebElementPlus objects: list of Selenium element objects, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem_list = WebDriverWait(common.driver, wait).until(EC.visibility_of_any_elements_located(locator))
+    elem_list = WebDriverWait(driver, timeout).until(EC.visibility_of_any_elements_located(locator))
     return list(map(WebElementPlus, elem_list))
 
 
@@ -87,12 +89,12 @@ def wait(seconds):
     time.sleep(seconds)
 
 
-def wait_until_stale(element, wait=10):
+def wait_until_stale(element, timeout=10):
     """
-    Wait until specified element is stale
+    Wait until specified element is stale or timeout is reached
 
     Args:
         element (Selenium element object): target element
-        wait (int, optional): max number of seconds to wait. Defaults to 10.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
     """
-    WebDriverWait(common.driver, wait).until(EC.staleness_of(element))
+    WebDriverWait(driver, timeout).until(EC.staleness_of(element))

@@ -1,7 +1,6 @@
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 
-import common
 import custom_conditions as CC
 
 
@@ -36,7 +35,7 @@ class WebElementPlus(WebElement):
         Returns:
             WebElementPlus object: the element itself. Useful for simultaneously clicking & storing the element
         """
-        WebDriverWait(common.driver, wait).until(CC.element_to_be_clickable(self))
+        WebDriverWait(self._parent, wait).until(CC.element_to_be_clickable(self))
         super().click()
         return self
 
