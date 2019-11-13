@@ -23,7 +23,7 @@ def find(selector, timeout=10):
         WebElementPlus object: Selenium element object, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located(locator))
+    elem = wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
     return WebElementPlus(elem)
 
 
@@ -39,7 +39,7 @@ def menu(selector, timeout=10):
         Select object: Selenium <select> element object, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem = WebDriverWait(driver, timeout).until(EC.visibility_of_element_located(locator))
+    elem = wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
     return Select(elem)
 
 
@@ -56,7 +56,7 @@ def find_all(selector, timeout=10):
         list of WebElementPlus objects: list of Selenium element objects, with a few added convenience methods
     """
     locator = locatorize(selector)
-    elem_list = WebDriverWait(driver, timeout).until(EC.visibility_of_any_elements_located(locator))
+    elem_list = wait_until(EC.visibility_of_any_elements_located(locator), timeout=timeout)
     return list(map(WebElementPlus, elem_list))
 
 
@@ -89,6 +89,25 @@ def wait(seconds):
     time.sleep(seconds)
 
 
+def wait_until(func, timeout=10, wait_between_calls=0.5):
+    """
+    Call specified function repeatedly until it returns a truthy value or until timeout is reached
+
+    Args:
+        func (function): Function to call repeatedly. This function MUST return truthy/falsy values, and
+            MUST accept either 0 args or 1 arg: the driver. Selenium EC methods can be used here.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
+        wait_between_calls (float, optional):
+            if function returns a falsy value, how many seconds to wait before calling it again. Defaults to 0.5.
+    """
+    # .until() passes 1 arg (driver) to the function. So we try calling the function as is, and if we get a TypeError
+    # (e.g. "TypeError: takes 0 args but 1 given"), we use a lambda to get the function to accept 1 arg
+    try:
+        return WebDriverWait(driver, timeout, poll_frequency=wait_between_calls).until(func)
+    except TypeError:
+        return WebDriverWait(driver, timeout, poll_frequency=wait_between_calls).until(lambda driver: func())
+
+
 def wait_until_stale(element, timeout=10):
     """
     Wait until specified element is stale or timeout is reached
@@ -97,4 +116,4 @@ def wait_until_stale(element, timeout=10):
         element (Selenium element object): target element
         timeout (int, optional): max number of seconds to wait. Defaults to 10.
     """
-    WebDriverWait(driver, timeout).until(EC.staleness_of(element))
+    wait_until(EC.staleness_of(element), timeout=timeout)

@@ -1,7 +1,6 @@
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.wait import WebDriverWait
 
-import custom_conditions as CC
+import selenium_helper as sel
 
 
 class WebElementPlus(WebElement):
@@ -15,15 +14,14 @@ class WebElementPlus(WebElement):
         """
         super().__init__(web_element._parent, web_element._id, web_element._w3c)
 
-    def replace_text(self, *value):
+    def is_clickable(self):
         """
-        Replace the current text in the element
+        Whether the element is clickable (technically, whether it's visible & not disabled)
 
-        Args:
-            *value (str): string(s) to replace the current text
+        Returns:
+             bool: True if element is clickable, False otherwise
         """
-        self.clear()
-        self.send_keys(*value)
+        return self.is_displayed() and self.is_enabled()
 
     def click(self, wait=10):
         """
@@ -35,9 +33,19 @@ class WebElementPlus(WebElement):
         Returns:
             WebElementPlus object: the element itself. Useful for simultaneously clicking & storing the element
         """
-        WebDriverWait(self._parent, wait).until(CC.element_to_be_clickable(self))
+        sel.wait_until(self.is_clickable, timeout=wait)
         super().click()
         return self
+
+    def replace_text(self, *value):
+        """
+        Replace the current text in the element
+
+        Args:
+            *value (str): string(s) to replace the current text
+        """
+        self.clear()
+        self.send_keys(*value)
 
     # TODO: 'should' methods - if we have to write our own asserts over for pytest, might as well
     # TODO: value property
