@@ -1,9 +1,10 @@
 from selenium.webdriver.remote.webelement import WebElement
 
+# TODO: circular import???
 import selenium_helper as sel
 
 
-class WebElementPlus(WebElement):
+class WebElementWrapper(WebElement):
     """Represents a DOM element. Extends the parent class to add a few methods."""
     def __init__(self, web_element):
         """
@@ -31,10 +32,11 @@ class WebElementPlus(WebElement):
             wait (int, optional): max number of seconds to wait. Defaults to 10.
 
         Returns:
-            WebElementPlus object: the element itself. Useful for simultaneously clicking & storing the element
+            WebElementWrapper object: the element itself. Useful for simultaneously clicking & storing the element
         """
         sel.wait_until(self.is_clickable, timeout=wait)
         super().click()
+        # TODO: is this weird? this seems weird
         return self
 
     def replace_text(self, *value):
@@ -47,5 +49,12 @@ class WebElementPlus(WebElement):
         self.clear()
         self.send_keys(*value)
 
+    @property
+    def value(self):
+        """
+        The content of the element's "value" attribute.
+        Mainly used to get the text in a text field, since that's not "normal" element text.
+        """
+        return self.get_attribute('value')
+
     # TODO: 'should' methods - if we have to write our own asserts over for pytest, might as well
-    # TODO: value property
