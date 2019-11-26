@@ -13,7 +13,8 @@ driver = None
 
 def find(selector, timeout=10):
     """
-    Fetch first element matching selector. If it's not visible, wait until it is or until timeout is reached.
+    Fetch first element matching selector and ensure it's visible.
+    If no element matches this criteria, keep rechecking until one does or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple

@@ -1,6 +1,7 @@
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
-# TODO: circular import???
 import selenium_helper as sel
 
 
@@ -15,6 +16,22 @@ class WebElementWrapper(WebElement):
         """
         super().__init__(web_element._parent, web_element._id, web_element._w3c)
 
+    def find(self, selector, timeout=10):
+        """
+        Fetch first descendant element matching selector and ensure it's visible.
+        If no element matches this criteria, keep rechecking until one does or until timeout is reached.
+
+        Args:
+            selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+            timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+        Returns:
+            WebElementWrapper object: Selenium element object with added convenience methods
+        """
+        locator = sel.locatorize(selector)
+        elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
+        return WebElementWrapper(elem)
+
     def is_clickable(self):
         """
         Whether the element is clickable (technically, whether it's visible & not disabled)
@@ -24,20 +41,15 @@ class WebElementWrapper(WebElement):
         """
         return self.is_displayed() and self.is_enabled()
 
-    def click(self, wait=10):
+    def click(self, timeout=10):
         """
-        Wait until the element is clickable, then click it
+        Wait until element is clickable or timeout is reached. If element is clickable, click it.
 
         Args:
-            wait (int, optional): max number of seconds to wait. Defaults to 10.
-
-        Returns:
-            WebElementWrapper object: the element itself. Useful for simultaneously clicking & storing the element
+            timeout (int, optional): max number of seconds to wait. Defaults to 10.
         """
-        sel.wait_until(self.is_clickable, timeout=wait)
+        self._wait_until(self.is_clickable, timeout=timeout)
         super().click()
-        # TODO: is this weird? this seems weird
-        return self
 
     def replace_text(self, *value):
         """
@@ -56,5 +68,17 @@ class WebElementWrapper(WebElement):
         Mainly used to get the text in a text field, since that's not "normal" element text.
         """
         return self.get_attribute('value')
+
+    def _wait_until(self, func, timeout=10, wait_between_calls=0.5):
+        """
+        Call specified function repeatedly until it returns a truthy value or until timeout is reached.
+
+        Note: This is a special, private implementation for WebElementWrapper. See sel_helper's version for more info.
+        """
+        wait_obj = WebDriverWait(self, timeout, poll_frequency=wait_between_calls)
+        try:
+            return wait_obj.until(func)
+        except TypeError:
+            return wait_obj.until(lambda driver: func())
 
     # TODO: 'should' methods - if we have to write our own asserts over for pytest, might as well
