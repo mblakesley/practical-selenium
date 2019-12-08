@@ -14,7 +14,7 @@ driver = None
 def find(selector, timeout=10):
     """
     Fetch first element matching selector and ensure it's visible.
-    If no element matches this criteria, keep rechecking until one does or until timeout is reached.
+    If no elements match this criteria, recheck until one does or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
@@ -28,26 +28,10 @@ def find(selector, timeout=10):
     return WebElementWrapper(elem)
 
 
-def menu(selector, timeout=10):
-    """
-    Fetch first <select> element matching selector. If not visible, wait until it is or until timeout is reached.
-
-    Args:
-        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
-        timeout (int, optional): max number of seconds to wait. Defaults to 10.
-
-    Returns:
-        Select object: Selenium <select> element object
-    """
-    locator = locatorize(selector)
-    elem = wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
-    return Select(elem)
-
-
 def find_all(selector, timeout=10):
     """
     Fetch all visible elements matching selector.
-    If none are visible, wait until at least 1 is or until timeout is reached.
+    If none match this criteria, recheck until at least one does or until timeout is reached.
 
     Args:
         selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
@@ -59,6 +43,23 @@ def find_all(selector, timeout=10):
     locator = locatorize(selector)
     elem_list = wait_until(EC.visibility_of_any_elements_located(locator), timeout=timeout)
     return list(map(WebElementWrapper, elem_list))
+
+
+def find_menu(selector, timeout=10):
+    """
+    Fetch first <select> element matching selector and ensure it's visible.
+    If no elements match this criteria, recheck until one does or until timeout is reached.
+
+    Args:
+        selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+    Returns:
+        Select object: Selenium <select> element object
+    """
+    locator = locatorize(selector)
+    elem = wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
+    return Select(elem)
 
 
 def locatorize(selector):

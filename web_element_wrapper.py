@@ -1,6 +1,7 @@
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.select import Select
 
 import selenium_helper as sel
 
@@ -19,7 +20,7 @@ class WebElementWrapper(WebElement):
     def find(self, selector, timeout=10):
         """
         Fetch first descendant element matching selector and ensure it's visible.
-        If no element matches this criteria, keep rechecking until one does or until timeout is reached.
+        If no elements match this criteria, recheck until one does or until timeout is reached.
 
         Args:
             selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
@@ -31,6 +32,38 @@ class WebElementWrapper(WebElement):
         locator = sel.locatorize(selector)
         elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
         return WebElementWrapper(elem)
+
+    def find_all(self, selector, timeout=10):
+        """
+        Fetch all visible descendant elements matching selector.
+        If none match this criteria, recheck until at least one does or until timeout is reached.
+
+        Args:
+            selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+            timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+        Returns:
+            list of WebElementWrapper objects: list of Selenium element objects with added convenience methods
+        """
+        locator = sel.locatorize(selector)
+        elem_list = self._wait_until(EC.visibility_of_any_elements_located(locator), timeout=timeout)
+        return list(map(WebElementWrapper, elem_list))
+
+    def find_menu(self, selector, timeout=10):
+        """
+        Fetch first descendant <select> element matching selector and ensure it's visible.
+        If no elements match this criteria, recheck until one does or until timeout is reached.
+
+        Args:
+            selector (str OR tuple): either a CSS/XPath selector string OR a Selenium locator tuple
+            timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+        Returns:
+            WebElementWrapper object: Selenium element object with added convenience methods
+        """
+        locator = sel.locatorize(selector)
+        elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
+        return Select(elem)
 
     def is_clickable(self):
         """
