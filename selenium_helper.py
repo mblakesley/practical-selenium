@@ -62,6 +62,32 @@ def find_menu(selector, timeout=10):
     return Select(elem)
 
 
+def find_by_text(basic_selector, text, matching_strategy='contains', timeout=10):
+    """
+    Fetch first element matching selector and containing the specified text and ensure it's visible.
+    If no elements match this criteria, recheck until one does or until timeout is reached.
+
+    Note: This method won't work when text is split across parent/child DOM elements, e.g.:
+        given: <a><span>some text</span></a>, then: find_by_text('a', 'some text') will work
+        given: <a>some<span>text</span></a>, then: find_by_text('a', 'some text') WON'T work
+
+    Args:
+        basic_selector (str): simple selector string for 1 element type, e.g. 'a' or 'tr'. Anything fancier WON'T work
+        text (str): text to look for
+        matching_strategy ({'contains', 'starts-with'}, optional):
+            matching strategy to use on the text check. Defaults to 'contains'.
+        timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+    Returns:
+        WebElementWrapper object: Selenium element object with added convenience methods
+    """
+    # This full selector finds any element with the given text,
+    # then looks for the closest "ancestor or self" element matching <basic_selector>
+    full_selector = '//*[{}(text(),"{}")]/ancestor-or-self::{}[1]'.format(
+        matching_strategy, text, basic_selector)
+    return find(full_selector, timeout=timeout)
+
+
 def locatorize(selector):
     """
     Convert <selector> to a Selenium locator, if it isn't one already.
@@ -74,8 +100,8 @@ def locatorize(selector):
     """
     if isinstance(selector, (tuple, list)):
         return selector
-    # here we guess that if the selector starts with a '/', it's xpath, not CSS
-    elif selector.startswith('/'):
+    # here we guess that if the selector starts with a '/' or './', it's xpath, not CSS
+    elif selector.startswith('/') or selector.startswith('./'):
         return (By.XPATH, selector)
     else:
         return (By.CSS_SELECTOR, selector)

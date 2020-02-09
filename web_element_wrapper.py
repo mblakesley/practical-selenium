@@ -65,6 +65,28 @@ class WebElementWrapper(WebElement):
         elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
         return Select(elem)
 
+    def find_by_text(self, basic_selector, text, matching_strategy='contains', timeout=10):
+        """
+        Fetch first descendant element matching selector and containing the specified text and ensure it's visible.
+        If no elements match this criteria, recheck until one does or until timeout is reached.
+
+        Note: This method won't work when text is split across parent/child DOM elements
+
+        Args:
+            basic_selector (str): selector string for 1 element type, e.g. 'a' or 'tr'. Anything fancier WON'T work
+            text (str): text to look for
+            matching_strategy ({'contains', 'starts-with'}, optional):
+                matching strategy to use on the text check. Defaults to 'contains'.
+            timeout (int, optional): max number of seconds to wait. Defaults to 10.
+
+        Returns:
+            WebElementWrapper object: Selenium element object with added convenience methods
+        """
+        # See sel_helper's version for more info on how this works
+        full_selector = './/*[{}(text(),"{}")]/ancestor-or-self::{}[1]'.format(
+            matching_strategy, text, basic_selector)
+        return self.find(full_selector, timeout=timeout)
+
     def is_clickable(self):
         """
         Whether the element is clickable (technically, whether it's visible & not disabled)
@@ -114,4 +136,8 @@ class WebElementWrapper(WebElement):
         except TypeError:
             return wait_obj.until(lambda driver: func())
 
-    # TODO: 'should' methods - if we have to write our own asserts over for pytest, might as well
+    # TODO: driver wrapper
+    # TODO: extract default timeouts to var
+    # TODO: staleness of -> wait_for_nav() like puppeteer? Or something else? "wait until stale" seems weird...
+    # TODO: 'should' methods? - if we have to write our own asserts over for pytest, might as well
+    # TODO: need our own EC.invisibility_of_all??
