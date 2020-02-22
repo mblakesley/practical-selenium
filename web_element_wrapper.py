@@ -3,8 +3,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.select import Select
 
-import selenium_helper as sel
-
 
 class WebElementWrapper(WebElement):
     """Represents a DOM element. Extends the parent class to add a few methods."""
@@ -29,7 +27,7 @@ class WebElementWrapper(WebElement):
         Returns:
             WebElementWrapper object: Selenium element object with added convenience methods
         """
-        locator = sel.locatorize(selector)
+        locator = self.parent.locatorize(selector)
         elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
         return WebElementWrapper(elem)
 
@@ -45,7 +43,7 @@ class WebElementWrapper(WebElement):
         Returns:
             list of WebElementWrapper objects: list of Selenium element objects with added convenience methods
         """
-        locator = sel.locatorize(selector)
+        locator = self.parent.locatorize(selector)
         elem_list = self._wait_until(EC.visibility_of_any_elements_located(locator), timeout=timeout)
         return list(map(WebElementWrapper, elem_list))
 
@@ -61,7 +59,7 @@ class WebElementWrapper(WebElement):
         Returns:
             WebElementWrapper object: Selenium element object with added convenience methods
         """
-        locator = sel.locatorize(selector)
+        locator = self.parent.locatorize(selector)
         elem = self._wait_until(EC.visibility_of_element_located(locator), timeout=timeout)
         return Select(elem)
 
@@ -136,7 +134,7 @@ class WebElementWrapper(WebElement):
         except TypeError:
             return wait_obj.until(lambda driver: func())
 
-    # TODO: driver wrapper
+    # TODO: make a chromewrapper .click() for convenience?
     # TODO: extract default timeouts to var
     # TODO: staleness of -> wait_for_nav() like puppeteer? Or something else? "wait until stale" seems weird...
     # TODO: 'should' methods? - if we have to write our own asserts over for pytest, might as well
